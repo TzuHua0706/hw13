@@ -1,0 +1,70 @@
+import React, { Component } from 'react';
+import { ScrollView, Animated, Dimensions, PanResponder, View, Text } from 'react-native';
+import { List, ListItem } from 'react-native-elements';
+
+import albums from '../json/albums.json';
+
+const { width, height } = Dimensions.get('window');
+const albumsWidth = 60;
+
+// Make a component
+class Ani extends Component {
+    constructor(props) {
+        super(props);
+        const position = new Animated.ValueXY();
+        this.state = { height: this.props.expanded ? null : 0, position }
+    }
+
+    componentWillMount() {
+        this.panResponder = PanResponder.create({
+            //onStartShouldSetPanResponder: () => true,
+            onMoveShouldSetPanResponderCapture: () => true,
+            onPanResponderMove: (event, gesture) => {
+                this.state.position.setValue({ x: gesture.dx });
+            },
+            onPanResponderRelease: this.onReleaseItem,
+            onPanResponderTerminate: this.onReleaseItem,
+        });
+    }
+
+    onReleaseItem = (event, gesture) => {
+        let config = {
+            toValue: { x: 0, y: 0 },
+            duration: 500,
+        };
+
+        Animated.spring(
+            this.state.position,
+            config,
+        ).start();
+    }
+  
+  goToPageTwo = (album) => {
+    this.props.navigation.navigate('Details', { ...album });
+  };
+  
+
+  render() {
+    const {position } = this.state;
+    const { album, nav } = this.props;
+    return (
+        <Animated.View
+          style={position.getLayout()}
+          {...this.panResponder.panHandlers}
+        >
+          <ListItem
+            key={album.title}
+            roundAvatar
+            avatar={{ uri: album.image }}
+            title={album.title}
+            subtitle={album.artist}
+            onPress={() => nav.navigate('Details', { ...album })}
+            // hideChevron
+            // rightTitle='More...'
+          />
+        </Animated.View>
+    );
+  }
+}
+
+export default Ani;
